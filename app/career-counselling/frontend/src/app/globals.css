@@ -1,0 +1,713 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide global footer on pages that use an inline side-footer */
+body[data-hide-footer] .global-footer {
+  display: none;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 215 20.2% 65.1%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
+
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 1.2%;
+
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 216 34% 17%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Global CSS to prevent selection */
+.no-select {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Old versions of Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+/* Hamster wheel loading animation */
+.wheel-and-hamster {
+  --dur: 1s;
+  position: relative;
+  width: 12em;
+  height: 12em;
+  font-size: 14px;
+}
+
+.wheel,
+.hamster,
+.hamster div,
+.spoke {
+  position: absolute;
+}
+
+.wheel,
+.spoke {
+  border-radius: 50%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.wheel {
+  background: radial-gradient(
+    100% 100% at center,
+    hsla(0, 0%, 60%, 0) 47.8%,
+    hsl(0, 0%, 60%) 48%
+  );
+  z-index: 2;
+}
+
+.hamster {
+  animation: hamster var(--dur) ease-in-out infinite;
+  top: 50%;
+  left: calc(50% - 3.5em);
+  width: 7em;
+  height: 3.75em;
+  transform: rotate(4deg) translate(-0.8em, 1.85em);
+  transform-origin: 50% 0;
+  z-index: 1;
+}
+
+.hamster__head {
+  animation: hamsterHead var(--dur) ease-in-out infinite;
+  background: hsl(30, 90%, 55%);
+  border-radius: 70% 30% 0 100% / 40% 25% 25% 60%;
+  box-shadow: 0 -0.25em 0 hsl(30, 90%, 80%) inset,
+    0.75em -1.55em 0 hsl(30, 90%, 90%) inset;
+  top: 0;
+  left: -2em;
+  width: 2.75em;
+  height: 2.5em;
+  transform-origin: 100% 50%;
+}
+
+.hamster__ear {
+  animation: hamsterEar var(--dur) ease-in-out infinite;
+  background: hsl(0, 90%, 85%);
+  border-radius: 50%;
+  box-shadow: -0.25em 0 hsl(30, 90%, 55%) inset;
+  top: -0.25em;
+  right: -0.25em;
+  width: 0.75em;
+  height: 0.75em;
+  transform-origin: 50% 75%;
+}
+
+.hamster__eye {
+  animation: hamsterEye var(--dur) linear infinite;
+  background-color: hsl(0, 0%, 0%);
+  border-radius: 50%;
+  top: 0.375em;
+  left: 1.25em;
+  width: 0.5em;
+  height: 0.5em;
+}
+
+.hamster__nose {
+  background: hsl(0, 90%, 75%);
+  border-radius: 35% 65% 85% 15% / 70% 50% 50% 30%;
+  top: 0.75em;
+  left: 0;
+  width: 0.2em;
+  height: 0.25em;
+}
+
+.hamster__body {
+  animation: hamsterBody var(--dur) ease-in-out infinite;
+  background: hsl(30, 90%, 90%);
+  border-radius: 50% 30% 50% 30% / 15% 60% 40% 40%;
+  box-shadow: 0.1em 0.75em 0 hsl(30, 90%, 55%) inset,
+    0.15em -0.5em 0 hsl(30, 90%, 80%) inset;
+  top: 0.25em;
+  left: 2em;
+  width: 4.5em;
+  height: 3em;
+  transform-origin: 17% 50%;
+  transform-style: preserve-3d;
+}
+
+.hamster__limb--fr,
+.hamster__limb--fl {
+  clip-path: polygon(0 0, 100% 0, 70% 80%, 60% 100%, 0% 100%, 40% 80%);
+  top: 2em;
+  left: 0.5em;
+  width: 1em;
+  height: 1.5em;
+  transform-origin: 50% 0;
+}
+
+.hamster__limb--fr {
+  animation: hamsterFRLimb var(--dur) linear infinite;
+  background: linear-gradient(hsl(30, 90%, 80%) 80%, hsl(0, 90%, 75%) 80%);
+  transform: rotate(15deg) translateZ(-1px);
+}
+
+.hamster__limb--fl {
+  animation: hamsterFLLimb var(--dur) linear infinite;
+  background: linear-gradient(hsl(30, 90%, 90%) 80%, hsl(0, 90%, 85%) 80%);
+  transform: rotate(15deg);
+}
+
+.hamster__limb--br,
+.hamster__limb--bl {
+  border-radius: 0.75em 0.75em 0 0;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 30%,
+    70% 90%,
+    70% 100%,
+    30% 100%,
+    40% 90%,
+    0% 30%
+  );
+  top: 1em;
+  left: 2.8em;
+  width: 1.5em;
+  height: 2.5em;
+  transform-origin: 50% 30%;
+}
+
+.hamster__limb--br {
+  animation: hamsterBRLimb var(--dur) linear infinite;
+  background: linear-gradient(hsl(30, 90%, 80%) 90%, hsl(0, 90%, 75%) 90%);
+  transform: rotate(-25deg) translateZ(-1px);
+}
+
+.hamster__limb--bl {
+  animation: hamsterBLLimb var(--dur) linear infinite;
+  background: linear-gradient(hsl(30, 90%, 90%) 90%, hsl(0, 90%, 85%) 90%);
+  transform: rotate(-25deg);
+}
+
+.hamster__tail {
+  animation: hamsterTail var(--dur) linear infinite;
+  background: hsl(0, 90%, 85%);
+  border-radius: 0.25em 50% 50% 0.25em;
+  box-shadow: 0 -0.2em 0 hsl(0, 90%, 75%) inset;
+  top: 1.5em;
+  right: -0.5em;
+  width: 1em;
+  height: 0.5em;
+  transform: rotate(30deg) translateZ(-1px);
+  transform-origin: 0.25em 0.25em;
+}
+
+.spoke {
+  animation: spoke var(--dur) linear infinite;
+  background: radial-gradient(
+      100% 100% at center,
+      hsl(0, 0%, 60%) 4.8%,
+      hsla(0, 0%, 60%, 0) 5%
+    ),
+    linear-gradient(
+        hsla(0, 0%, 55%, 0) 46.9%,
+        hsl(0, 0%, 65%) 47% 52.9%,
+        hsla(0, 0%, 65%, 0) 53%
+      )
+      50% 50% / 99% 99% no-repeat;
+}
+
+/* Loading Spinner Styles */
+.loadingspinner {
+  --square: 26px;
+  --offset: 30px;
+  --duration: 2.4s;
+  --delay: 0.2s;
+  --timing-function: ease-in-out;
+  --in-duration: 0.4s;
+  --in-delay: 0.1s;
+  --in-timing-function: ease-out;
+  width: calc(3 * var(--offset) + var(--square));
+  height: calc(2 * var(--offset) + var(--square));
+  padding: 0px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.loadingspinner div {
+  display: inline-block;
+  background: #4169e1; /* Updated color to match theme */
+  border: none;
+  border-radius: 2px;
+  width: var(--square);
+  height: var(--square);
+  position: absolute;
+  padding: 0px;
+  margin: 0px;
+  font-size: 6pt;
+  color: black;
+}
+
+.loadingspinner #square1 {
+  left: calc(0 * var(--offset));
+  top: calc(0 * var(--offset));
+  animation: square1 var(--duration) var(--delay) var(--timing-function)
+      infinite,
+    squarefadein var(--in-duration) calc(1 * var(--in-delay))
+      var(--in-timing-function) both;
+}
+
+.loadingspinner #square2 {
+  left: calc(0 * var(--offset));
+  top: calc(1 * var(--offset));
+  animation: square2 var(--duration) var(--delay) var(--timing-function)
+      infinite,
+    squarefadein var(--in-duration) calc(1 * var(--in-delay))
+      var(--in-timing-function) both;
+}
+
+.loadingspinner #square3 {
+  left: calc(1 * var(--offset));
+  top: calc(1 * var(--offset));
+  animation: square3 var(--duration) var(--delay) var(--timing-function)
+      infinite,
+    squarefadein var(--in-duration) calc(2 * var(--in-delay))
+      var(--in-timing-function) both;
+}
+
+.loadingspinner #square4 {
+  left: calc(2 * var(--offset));
+  top: calc(1 * var(--offset));
+  animation: square4 var(--duration) var(--delay) var(--timing-function)
+      infinite,
+    squarefadein var(--in-duration) calc(3 * var(--in-delay))
+      var(--in-timing-function) both;
+}
+
+.loadingspinner #square5 {
+  left: calc(3 * var(--offset));
+  top: calc(1 * var(--offset));
+  animation: square5 var(--duration) var(--delay) var(--timing-function)
+      infinite,
+    squarefadein var(--in-duration) calc(4 * var(--in-delay))
+      var(--in-timing-function) both;
+}
+
+@keyframes square1 {
+  0% {
+    left: calc(0 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+
+  8.333% {
+    left: calc(0 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  100% {
+    left: calc(0 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+}
+
+@keyframes square2 {
+  0% {
+    left: calc(0 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  8.333% {
+    left: calc(0 * var(--offset));
+    top: calc(2 * var(--offset));
+  }
+
+  16.67% {
+    left: calc(1 * var(--offset));
+    top: calc(2 * var(--offset));
+  }
+
+  25.00% {
+    left: calc(1 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  83.33% {
+    left: calc(1 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  91.67% {
+    left: calc(1 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+
+  100% {
+    left: calc(0 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+}
+
+@keyframes square3 {
+  0%,
+  100% {
+    left: calc(1 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  16.67% {
+    left: calc(1 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  25.00% {
+    left: calc(1 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+
+  33.33% {
+    left: calc(2 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+
+  41.67% {
+    left: calc(2 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  66.67% {
+    left: calc(2 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  75.00% {
+    left: calc(2 * var(--offset));
+    top: calc(2 * var(--offset));
+  }
+
+  83.33% {
+    left: calc(1 * var(--offset));
+    top: calc(2 * var(--offset));
+  }
+
+  91.67% {
+    left: calc(1 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+}
+
+@keyframes square4 {
+  0% {
+    left: calc(2 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  33.33% {
+    left: calc(2 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  41.67% {
+    left: calc(2 * var(--offset));
+    top: calc(2 * var(--offset));
+  }
+
+  50.00% {
+    left: calc(3 * var(--offset));
+    top: calc(2 * var(--offset));
+  }
+
+  58.33% {
+    left: calc(3 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  100% {
+    left: calc(3 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+}
+
+@keyframes square5 {
+  0% {
+    left: calc(3 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  50.00% {
+    left: calc(3 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  58.33% {
+    left: calc(3 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+
+  66.67% {
+    left: calc(2 * var(--offset));
+    top: calc(0 * var(--offset));
+  }
+
+  75.00% {
+    left: calc(2 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+
+  100% {
+    left: calc(2 * var(--offset));
+    top: calc(1 * var(--offset));
+  }
+}
+
+@keyframes squarefadein {
+  0% {
+    transform: scale(0.75);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Animations */
+@keyframes hamster {
+  from,
+  to {
+    transform: rotate(4deg) translate(-0.8em, 1.85em);
+  }
+
+  50% {
+    transform: rotate(0) translate(-0.8em, 1.85em);
+  }
+}
+
+@keyframes hamsterHead {
+  from,
+  25%,
+  50%,
+  75%,
+  to {
+    transform: rotate(0);
+  }
+
+  12.5%,
+  37.5%,
+  62.5%,
+  87.5% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes hamsterEye {
+  from,
+  90%,
+  to {
+    transform: scaleY(1);
+  }
+
+  95% {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes hamsterEar {
+  from,
+  25%,
+  50%,
+  75%,
+  to {
+    transform: rotate(0);
+  }
+
+  12.5%,
+  37.5%,
+  62.5%,
+  87.5% {
+    transform: rotate(12deg);
+  }
+}
+
+@keyframes hamsterBody {
+  from,
+  25%,
+  50%,
+  75%,
+  to {
+    transform: rotate(0);
+  }
+
+  12.5%,
+  37.5%,
+  62.5%,
+  87.5% {
+    transform: rotate(-2deg);
+  }
+}
+
+@keyframes hamsterFRLimb {
+  from,
+  25%,
+  50%,
+  75%,
+  to {
+    transform: rotate(50deg) translateZ(-1px);
+  }
+
+  12.5%,
+  37.5%,
+  62.5%,
+  87.5% {
+    transform: rotate(-30deg) translateZ(-1px);
+  }
+}
+
+@keyframes hamsterFLLimb {
+  from,
+  25%,
+  50%,
+  75%,
+  to {
+    transform: rotate(-30deg);
+  }
+
+  12.5%,
+  37.5%,
+  62.5%,
+  87.5% {
+    transform: rotate(50deg);
+  }
+}
+
+@keyframes hamsterBRLimb {
+  from,
+  25%,
+  50%,
+  75%,
+  to {
+    transform: rotate(-60deg) translateZ(-1px);
+  }
+
+  12.5%,
+  37.5%,
+  62.5%,
+  87.5% {
+    transform: rotate(20deg) translateZ(-1px);
+  }
+}
+
+@keyframes hamsterBLLimb {
+  from,
+  25%,
+  50%,
+  75%,
+  to {
+    transform: rotate(20deg);
+  }
+
+  12.5%,
+  37.5%,
+  62.5%,
+  87.5% {
+    transform: rotate(-60deg);
+  }
+}
+
+@keyframes hamsterTail {
+  from,
+  25%,
+  50%,
+  75%,
+  to {
+    transform: rotate(30deg) translateZ(-1px);
+  }
+
+  12.5%,
+  37.5%,
+  62.5%,
+  87.5% {
+    transform: rotate(10deg) translateZ(-1px);
+  }
+}
+
+@keyframes spoke {
+  from {
+    transform: rotate(0);
+  }
+
+  to {
+    transform: rotate(-1turn);
+  }
+}
