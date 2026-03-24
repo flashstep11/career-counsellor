@@ -513,13 +513,13 @@ function MyFeedSection() {
       promises.push(
         fetch(`/api/experts/${user.expertId}/blogs?limit=50`, { headers })
           .then((r) => (r.ok ? r.json() : {}))
-          .then((data) => setBlogs(data.blogs || []))
+          .then((data: { blogs?: Blog[] }) => setBlogs(Array.isArray(data.blogs) ? data.blogs : []))
           .catch(() => setBlogs([]))
       );
       promises.push(
         fetch(`/api/experts/${user.expertId}/videos?limit=50`, { headers })
           .then((r) => (r.ok ? r.json() : {}))
-          .then((data) => setVideos(data.videos || []))
+          .then((data: { videos?: VideoType[] }) => setVideos(Array.isArray(data.videos) ? data.videos : []))
           .catch(() => setVideos([]))
       );
     }
