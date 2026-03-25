@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator, AliasChoices
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from enum import Enum
@@ -40,8 +40,28 @@ class ExpertResponse(BaseModel):
     specialization: Optional[str] = None
     bio: Optional[str] = None
     rating: float = 0.0
-    status: ExpertApprovalStatus = ExpertApprovalStatus.PENDING
+    # Stored in DB as `expertStatus`. Some older records may have `status: "active"`.
+    status: ExpertApprovalStatus = Field(
+        default=ExpertApprovalStatus.PENDING,
+        validation_alias=AliasChoices("expertStatus", "status"),
+        serialization_alias="status",
+    )
     createdAt: datetime
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def _coerce_status(cls, value):
+        if value is None:
+            return ExpertApprovalStatus.PENDING
+        if isinstance(value, ExpertApprovalStatus):
+            return value
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized == "active":
+                return ExpertApprovalStatus.APPROVED
+            if normalized in {"pending", "approved", "rejected"}:
+                return ExpertApprovalStatus(normalized)
+        return ExpertApprovalStatus.PENDING
 
     model_config = ConfigDict(
         populate_by_name=True,

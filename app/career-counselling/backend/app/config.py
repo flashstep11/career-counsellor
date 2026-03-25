@@ -9,6 +9,14 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     CORS_ALLOW_ORIGINS: str
     GEMINI_API_KEY: str
+
+    # Local tooling (optional): admin seeding
+    ADMIN_EMAIL: str = ""
+    ADMIN_PASSWORD: str = ""
+    ADMIN_FIRST_NAME: str = ""
+    ADMIN_LAST_NAME: str = ""
+    RESET_ADMIN_PASSWORD: bool = False
+    ALLOW_DEFAULT_ADMIN: bool = False
     # Twilio SMS (deprecated - using email instead)
     ACCOUNT_SID: str = ""
     AUTH_TOKEN: str = ""
