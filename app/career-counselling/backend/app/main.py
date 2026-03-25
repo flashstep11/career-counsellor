@@ -6,7 +6,7 @@ import os
 import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import blog, branch, college_branch, college, expert, search, user, video, auth, comment, post, admin, expert_analytics, notification, rating, expert_application, file, chatbot, meeting, community, activity, connection, moderator_application
+from app.routes import blog, branch, college_branch, college, expert, search, user, video, auth, comment, post, admin, expert_analytics, notification, rating, expert_application, file, chatbot, meeting, community, activity, connection, moderator_application, refund
 from app.managers.user import UserManager
 from app.config import settings
 from app.core.socket_manager import sio
@@ -23,6 +23,7 @@ _fastapi_app.add_middleware(
 )
 
 # Include routers
+_fastapi_app.include_router(refund.router, tags=["refund"], prefix="/api")
 _fastapi_app.include_router(blog.router, tags=["blogs"], prefix="/api")
 _fastapi_app.include_router(branch.router, tags=["branch"], prefix="/api")
 _fastapi_app.include_router(college_branch.router, tags=[

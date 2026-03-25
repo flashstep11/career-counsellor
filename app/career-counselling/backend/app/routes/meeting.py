@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, status
 from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel
+from bson import ObjectId
 from app.managers.meeting import MeetingManager
 from app.managers.expert import ExpertManager
 from app.core.auth_utils import require_user, get_current_user
@@ -306,7 +307,7 @@ async def get_meeting_token(
     # Fetch student wallet balance
     wallet_balance = 0
     if not is_expert:
-        user_doc = await meeting_manager.db.users.find_one({"_id": user.id})
+        user_doc = await meeting_manager.db.users.find_one({"_id": ObjectId(user.id)})
         if user_doc:
             wallet_balance = user_doc.get("wallet", 0)
 
@@ -369,10 +370,9 @@ async def extend_meeting(
         raise HTTPException(status_code=400, detail=message)
 
     # Return new meeting end time and wallet balance so frontend can refresh token
-    from bson import ObjectId
     db = meeting_manager.db
     updated_meeting = await db.meetings.find_one({"_id": ObjectId(meeting_id)})
-    updated_user = await db.users.find_one({"_id": user.id})
+    updated_user = await db.users.find_one({"_id": ObjectId(user.id)})
     new_end_time = updated_meeting.get("endTime") if updated_meeting else None
     new_wallet = updated_user.get("wallet", 0) if updated_user else 0
 

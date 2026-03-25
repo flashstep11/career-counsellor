@@ -75,7 +75,7 @@ export default function BookingCalendar({
                 const year = currentMonth.getFullYear();
                 // API month is 1-12
                 const month = currentMonth.getMonth() + 1;
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+                const apiUrl = "";
 
                 const response = await fetch(
                     `${apiUrl}/api/experts/${expertId}/availability?year=${year}&month=${month}`
@@ -102,7 +102,7 @@ export default function BookingCalendar({
         setIsLoadingSlots(true);
 
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+            const apiUrl = "";
             const response = await fetch(
                 `${apiUrl}/api/experts/${expertId}/slots?date=${dateStr}`
             );
@@ -124,7 +124,7 @@ export default function BookingCalendar({
         setIsBooking(true);
         try {
             const token = localStorage.getItem("token");
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+            const apiUrl = "";
             const response = await fetch(`${apiUrl}/api/meetings/book`, {
                 method: "POST",
                 headers: {

@@ -31,7 +31,7 @@ export function UpcomingEventsWidget({ transparent = false }: { transparent?: bo
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+        const apiUrl = "";
         const response = await axios.get(`${apiUrl}/api/meetings/my`, {
           headers: { Authorization: `Bearer ${token}` }
         });

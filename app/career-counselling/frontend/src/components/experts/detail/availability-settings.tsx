@@ -149,7 +149,7 @@ export default function AvailabilitySettings({
         setIsSaving(true);
         try {
             const token = localStorage.getItem("token");
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+            const apiUrl = "";
             const response = await fetch(`${apiUrl}/api/experts/${expertId}`, {
                 method: "PUT",
                 headers: {

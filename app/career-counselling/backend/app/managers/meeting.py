@@ -425,16 +425,19 @@ class MeetingManager:
     ) -> tuple[bool, str]:
         """
         Extend an ongoing meeting by the specified duration.
+        Checks for conflicts for both the expert AND the student.
         """
         meeting = await self.get_meeting(meeting_id)
         if not meeting:
             return False, "Meeting not found"
 
         # Only the student can extend (and pay)
-        if meeting["userId"] != user_id:
+        if str(meeting["userId"]) != str(user_id):
             return False, "Only the student who booked the meeting can extend it"
 
-        if meeting["status"] != MeetingStatus.SCHEDULED and meeting["status"] != MeetingStatus.IN_PROGRESS:
+        # Accept both string and enum values for status
+        allowed_statuses = {MeetingStatus.SCHEDULED, MeetingStatus.IN_PROGRESS, "scheduled", "in_progress"}
+        if meeting["status"] not in allowed_statuses:
             return False, "Only active or scheduled meetings can be extended"
 
         expert_id = meeting["expertId"]
@@ -446,18 +449,27 @@ class MeetingManager:
 
         new_end = current_end + timedelta(minutes=duration_minutes)
 
-        # 1. Check for conflicts for this expert (any meeting starting before our proposed new end time)
-        # Note: we exclude the current meeting ID
-        conflict = await self.collection.find_one({
+        # 1. Check for conflicts for this EXPERT (any meeting starting in the extended window)
+        expert_conflict = await self.collection.find_one({
             "_id": {"$ne": ObjectId(meeting_id)},
             "expertId": expert_id,
             "status": {"$ne": MeetingStatus.CANCELLED},
             "startTime": {"$lt": new_end, "$gte": current_end}
         })
-        if conflict:
-            return False, "The expert has another meeting scheduled right after this one."
+        if expert_conflict:
+            return False, "Cannot extend — the expert has another meeting scheduled right after this one."
 
-        # 2. Calculate prorated cost
+        # 2. Check for conflicts for the STUDENT (any meeting starting in the extended window)
+        student_conflict = await self.collection.find_one({
+            "_id": {"$ne": ObjectId(meeting_id)},
+            "userId": str(user_id),
+            "status": {"$ne": MeetingStatus.CANCELLED},
+            "startTime": {"$lt": new_end, "$gte": current_end}
+        })
+        if student_conflict:
+            return False, "Cannot extend — you have another meeting scheduled right after this one."
+
+        # 3. Calculate prorated cost
         expert = await self.db.experts.find_one({"_id": ObjectId(expert_id)})
         if not expert:
             return False, "Expert not found"
@@ -465,7 +477,7 @@ class MeetingManager:
         hourly_rate = expert.get("meetingCost", 0)
         extension_cost = int(hourly_rate * (duration_minutes / 60.0))
 
-        # 3. Check wallet balance
+        # 4. Check wallet balance
         user = await self.db.users.find_one({"_id": ObjectId(user_id)})
         if not user:
             return False, "User not found"
@@ -474,13 +486,13 @@ class MeetingManager:
         if wallet_balance < extension_cost:
             return False, f"Insufficient balance. You need {extension_cost} coins but have {wallet_balance}"
 
-        # 4. Deduct coins from user's wallet
+        # 5. Deduct coins from user's wallet
         await self.db.users.update_one(
             {"_id": ObjectId(user_id)},
             {"$inc": {"wallet": -extension_cost}}
         )
 
-        # 5. Update meeting end time; track extension earnings separately (costInfo stays as original booking cost)
+        # 6. Update meeting end time; track extension earnings separately (costInfo stays as original booking cost)
         await self.collection.update_one(
             {"_id": ObjectId(meeting_id)},
             {

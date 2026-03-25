@@ -726,8 +726,8 @@ export default function ExpertDashboard({
                                     s.status === "completed"
                                       ? "border-green-300 text-green-700 bg-green-50"
                                       : s.status === "cancelled"
-                                      ? "border-red-300 text-red-700 bg-red-50"
-                                      : "border-amber-300 text-amber-700 bg-amber-50"
+                                        ? "border-red-300 text-red-700 bg-red-50"
+                                        : "border-amber-300 text-amber-700 bg-amber-50"
                                   }
                                 >
                                   {s.status}
@@ -967,9 +967,12 @@ export default function ExpertDashboard({
               <Button
                 className="w-full justify-start hover:bg-blue-50"
                 variant="outline"
-                onClick={() =>
-                  (window.location.href = "https://calendar.google.com/")
-                }
+                onClick={() => {
+                  const el = document.getElementById("availability-settings");
+                  if (el) {
+                    el.scrollIntoView({ behavior: "smooth" });
+                  }
+                }}
               >
                 <Calendar className="h-4 w-4 mr-2" />
                 Manage Schedule
@@ -1129,7 +1132,7 @@ export default function ExpertDashboard({
       </div>
 
       {/* Availability Schedule */}
-      <div className="mt-6">
+      <div className="mt-6 px-6 pb-12" id="availability-settings">
         <AvailabilitySettings
           expertId={expert.expertID}
           initialAvailability={(expert as any).availability}

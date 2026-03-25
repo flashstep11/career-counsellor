@@ -42,7 +42,7 @@ export default function ExpertPosts({
       let authorId = userId;
       if (!authorId) {
         try {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+          const apiUrl = "";
           const res = await fetch(`${apiUrl}/api/experts/${expertId}`);
           if (res.ok) {
             const data = await res.json();
@@ -59,7 +59,7 @@ export default function ExpertPosts({
       }
 
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+        const apiUrl = "";
         const res = await fetch(`${apiUrl}/api/users/${authorId}/posts?limit=20`);
         if (res.ok) {
           const data = await res.json();

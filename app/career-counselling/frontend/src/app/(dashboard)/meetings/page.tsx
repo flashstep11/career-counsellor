@@ -48,7 +48,7 @@ export default function MeetingsDashboard() {
         try {
             // Use existing backend endpoint
             const token = localStorage.getItem("token");
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+            const apiUrl = "";
             const response = await axios.get(`${apiUrl}/api/meetings/my`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -119,7 +119,7 @@ export default function MeetingsDashboard() {
                                     </div>
                                 </div>
                                 <Badge className={getStatusColor(meeting.status)} variant="secondary">
-                                    {meeting.status || 'Scheduled'}
+                                    {meeting.status ? meeting.status.charAt(0).toUpperCase() + meeting.status.slice(1) : 'Scheduled'}
                                 </Badge>
                             </div>
 
@@ -136,24 +136,28 @@ export default function MeetingsDashboard() {
                         </div>
 
                         {/* Actions Column */}
-                        <div className="flex flex-col sm:items-end justify-center gap-2 border-t sm:border-t-0 sm:border-l border-gray-100 pt-4 sm:pt-0 sm:pl-4 min-w-[160px]">
-                            {isPast ? (
-                                <Button className="w-full" variant="outline" onClick={() => router.push(`/experts/${meeting.expertId}`)}>
-                                    Book Again
-                                </Button>
-                            ) : canJoin ? (
-                                <Button className="w-full gap-2 bg-indigo-600 hover:bg-indigo-700" onClick={() => router.push(`/meeting/${meeting._id || meeting.id}`)}>
-                                    Join Meeting <ExternalLink className="h-4 w-4" />
-                                </Button>
-                            ) : (
-                                <div className="w-full text-center space-y-1">
-                                    <Button className="w-full gap-2" variant="outline" disabled>
-                                        <Clock className="h-4 w-4" /> {getCountdown()}
+                        {(!isPast || !user?.isExpert) && (
+                            <div className="flex flex-col sm:items-end justify-center gap-2 border-t sm:border-t-0 sm:border-l border-gray-100 pt-4 sm:pt-0 sm:pl-4 min-w-[160px]">
+                                {isPast ? (
+                                    !user?.isExpert && (
+                                        <Button className="w-full" variant="outline" onClick={() => router.push(`/experts/${meeting.expertId}`)}>
+                                            Book Again
+                                        </Button>
+                                    )
+                                ) : canJoin ? (
+                                    <Button className="w-full gap-2 bg-indigo-600 hover:bg-indigo-700" onClick={() => router.push(`/meeting/${meeting._id || meeting.id}`)}>
+                                        Join Meeting <ExternalLink className="h-4 w-4" />
                                     </Button>
-                                    <p className="text-xs text-gray-400">Join opens 10 min before</p>
-                                </div>
-                            )}
-                        </div>
+                                ) : (
+                                    <div className="w-full text-center space-y-1">
+                                        <Button className="w-full gap-2" variant="outline" disabled>
+                                            <Clock className="h-4 w-4" /> {getCountdown()}
+                                        </Button>
+                                        <p className="text-xs text-gray-400">Join opens 10 min before</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
@@ -170,11 +174,18 @@ export default function MeetingsDashboard() {
             </h3>
             <p className="text-gray-500 max-w-sm mx-auto mb-6">
                 {type === 'upcoming'
-                    ? "You don't have any scheduled sessions with experts right now."
-                    : "Your past meeting history will appear here once you complete a session."}
+                    ? user?.isExpert
+                        ? "You don't have any scheduled sessions right now."
+                        : "You don't have any scheduled sessions with experts right now."
+                    : user?.isExpert
+                        ? "You haven't completed any sessions yet."
+                        : "You haven't completed any expert sessions yet."}
             </p>
-            {type === 'upcoming' && (
-                <Button onClick={() => router.push('/experts')} className="px-6 rounded-full bg-indigo-600 hover:bg-indigo-700 h-12 text-md">
+            {!user?.isExpert && (
+                <Button
+                    className="px-6 rounded-full bg-indigo-600 hover:bg-indigo-700 h-12 text-md"
+                    onClick={() => router.push('/experts')}
+                >
                     <Search className="h-4 w-4 mr-2" />
                     Find a Mentor
                 </Button>
@@ -193,15 +204,27 @@ export default function MeetingsDashboard() {
                             <p className="text-gray-500 mt-2 text-lg">Manage your upcoming and past expert sessions</p>
                         </div>
 
-                        <Button
-                            onClick={fetchMeetings}
-                            variant="outline"
-                            className="gap-2 shrink-0 bg-white"
-                            disabled={loading}
-                        >
-                            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                            Refresh
-                        </Button>
+                        <div className="flex gap-2 w-full sm:w-auto mt-4 sm:mt-0">
+                            {user?.isExpert && user.expertId && (
+                                <Button
+                                    onClick={() => router.push(`/experts/${user.expertId}`)}
+                                    variant="default"
+                                    className="gap-2 bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto"
+                                >
+                                    <Calendar className="h-4 w-4" />
+                                    Edit Schedule
+                                </Button>
+                            )}
+                            <Button
+                                onClick={fetchMeetings}
+                                variant="outline"
+                                className="gap-2 shrink-0 bg-white w-full sm:w-auto"
+                                disabled={loading}
+                            >
+                                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                                Refresh
+                            </Button>
+                        </div>
                     </div>
 
                     {error && (

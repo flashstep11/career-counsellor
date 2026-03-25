@@ -6,6 +6,7 @@ from enum import Enum
 
 class MeetingStatus(str, Enum):
     SCHEDULED = "scheduled"
+    IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
 

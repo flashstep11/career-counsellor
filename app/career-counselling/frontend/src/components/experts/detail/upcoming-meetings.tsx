@@ -73,12 +73,17 @@ export default function UpcomingMeetings({ expertId }: UpcomingMeetingsProps) {
         },
       });
 
-      const fetchedMeetings = response.data || [];
-      setAllMeetings(fetchedMeetings);
+      const fetchedMeetings = response.data.meetings || [];
+      const now = new Date();
+      const upcomingMeetings = fetchedMeetings
+        .filter((m: Meeting) => new Date(m.endTime) > now)
+        .sort((a: Meeting, b: Meeting) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+
+      setAllMeetings(upcomingMeetings);
 
       // Calculate total pages
       setTotalPages(
-        Math.max(1, Math.ceil(fetchedMeetings.length / itemsPerPage))
+        Math.max(1, Math.ceil(upcomingMeetings.length / itemsPerPage))
       );
 
       // Set current page meetings
@@ -218,8 +223,8 @@ export default function UpcomingMeetings({ expertId }: UpcomingMeetingsProps) {
                 <div
                   key={meeting._id}
                   className={`border rounded-lg p-4 hover:bg-gray-50 transition-colors ${getRefundStatus(meeting._id) === "approved"
-                      ? "border-red-200 bg-red-50"
-                      : ""
+                    ? "border-red-200 bg-red-50"
+                    : ""
                     }`}
                 >
                   <div className="flex items-start justify-between mb-2">
@@ -249,12 +254,13 @@ export default function UpcomingMeetings({ expertId }: UpcomingMeetingsProps) {
                       )}
                       <Badge
                         variant={
-                          meeting.status === "completed" ? "outline" : "default"
+                          meeting.status === "completed" || meeting.status === "scheduled" ? "outline" : "default"
                         }
                         className={
                           meeting.status === "completed"
                             ? "bg-green-50 text-green-700 border-green-300"
-                            : undefined
+                            : meeting.status === "scheduled" ? "bg-blue-50 text-blue-700 border-blue-300"
+                              : undefined
                         }
                       >
                         {meeting.status.charAt(0).toUpperCase() +

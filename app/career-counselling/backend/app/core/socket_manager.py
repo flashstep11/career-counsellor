@@ -75,7 +75,7 @@ async def broadcast_to_users(user_ids: list, event: str, data: dict) -> None:
 # ---------------------------------------------------------------------------
 # Extension approval flow
 # ---------------------------------------------------------------------------
-# Pending requests: { meeting_id -> { studentUserId, studentSid, durationMinutes, extensionCost } }
+# Pending requests: { meeting_id -> { studentUserId, durationMinutes, extensionCost } }
 _pending_extensions: dict = {}
 
 
@@ -96,23 +96,36 @@ async def extension_request(sid, data):
     meeting_id = data.get("meetingId")
     duration_minutes = int(data.get("durationMinutes", 30))
 
+    print(f"[EXT_REQ] Received: meeting={meeting_id}, student_sid={sid}, student_user_id={student_user_id}")
+
     mm = MeetingManager()
     meeting = await mm.get_meeting(meeting_id)
     if not meeting:
+        print(f"[EXT_REQ] ERROR: Meeting {meeting_id} not found")
         await sio.emit("extension_error", {"meetingId": meeting_id, "reason": "Meeting not found"}, to=sid)
         return
 
-    if meeting["userId"] != student_user_id:
+    print(f"[EXT_REQ] Meeting userId={meeting['userId']} (type={type(meeting['userId']).__name__}), student_user_id={student_user_id} (type={type(student_user_id).__name__})")
+    print(f"[EXT_REQ] Meeting status={meeting.get('status')} (type={type(meeting.get('status')).__name__})")
+
+    # Compare as strings to avoid type mismatch
+    if str(meeting["userId"]) != str(student_user_id):
+        print(f"[EXT_REQ] ERROR: userId mismatch: {meeting['userId']} != {student_user_id}")
         await sio.emit("extension_error", {"meetingId": meeting_id, "reason": "Not authorised"}, to=sid)
         return
 
-    if meeting.get("status") not in (MeetingStatus.SCHEDULED, MeetingStatus.IN_PROGRESS):
+    # Accept both string values and enum values for status
+    meeting_status = meeting.get("status")
+    allowed_statuses = {MeetingStatus.SCHEDULED, MeetingStatus.IN_PROGRESS, "scheduled", "in_progress"}
+    if meeting_status not in allowed_statuses:
+        print(f"[EXT_REQ] ERROR: Meeting status '{meeting_status}' is not active")
         await sio.emit("extension_error", {"meetingId": meeting_id, "reason": "Meeting is not active"}, to=sid)
         return
 
     db = get_database()
     expert = await db.experts.find_one({"_id": ObjectId(meeting["expertId"])})
     if not expert:
+        print(f"[EXT_REQ] ERROR: Expert {meeting['expertId']} not found")
         await sio.emit("extension_error", {"meetingId": meeting_id, "reason": "Expert not found"}, to=sid)
         return
 
@@ -120,21 +133,25 @@ async def extension_request(sid, data):
     hourly_rate = expert.get("meetingCost", 0)
     extension_cost = int(hourly_rate * (duration_minutes / 60.0))
 
+    print(f"[EXT_REQ] Expert userId={expert_user_id} (type={type(expert_user_id).__name__}), cost={extension_cost}")
+
     # Store pending request (overwrite any previous request for this meeting)
     _pending_extensions[meeting_id] = {
         "studentUserId": student_user_id,
-        "studentSid": sid,
         "durationMinutes": duration_minutes,
         "extensionCost": extension_cost,
     }
+
+    # Check which rooms the expert is in
+    print(f"[EXT_REQ] Emitting extension_request_incoming to room={str(expert_user_id)}")
 
     # Relay to expert
     await sio.emit("extension_request_incoming", {
         "meetingId": meeting_id,
         "durationMinutes": duration_minutes,
         "extensionCost": extension_cost,
-    }, room=expert_user_id)
-    print(f"Extension request relayed: meeting={meeting_id} student={student_user_id} → expert={expert_user_id}")
+    }, room=str(expert_user_id))
+    print(f"[EXT_REQ] Extension request relayed: meeting={meeting_id} student={student_user_id} → expert_room={expert_user_id}")
 
 
 @sio.event
@@ -156,7 +173,6 @@ async def extension_respond(sid, data):
         # Request expired or already handled
         return
 
-    student_sid = pending["studentSid"]
     student_user_id = pending["studentUserId"]
     duration_minutes = pending["durationMinutes"]
 
@@ -164,7 +180,7 @@ async def extension_respond(sid, data):
         await sio.emit("extension_denied", {
             "meetingId": meeting_id,
             "reason": "Expert declined the extension request.",
-        }, to=student_sid)
+        }, room=str(student_user_id))
         return
 
     # Execute the actual extension
@@ -184,10 +200,10 @@ async def extension_respond(sid, data):
             "meetingId": meeting_id,
             "newEndTime": end_iso,
             "newWalletBalance": new_wallet,
-        }, to=student_sid)
+        }, room=str(student_user_id))
         print(f"Extension approved: meeting={meeting_id} new_end={end_iso}")
     else:
         await sio.emit("extension_denied", {
             "meetingId": meeting_id,
             "reason": msg,
-        }, to=student_sid)
+        }, room=str(student_user_id))
