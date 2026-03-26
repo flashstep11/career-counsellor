@@ -166,10 +166,14 @@ function PostsSection() {
       .then((r) => (r.ok ? r.json() : []))
       .then((data: HistoryItem[]) => {
         const items = Array.from(new Map(data.filter((h) => h.type === "post").map((h) => [h.itemId, h])).values());
-        if (items.length > 0) { setHistory(items); setUseHistory(true); setLoading(false); }
-        else loadGlobal();
+        setHistory(items);
+        setUseHistory(true);
       })
-      .catch(() => loadGlobal());
+      .catch(() => {
+        setHistory([]);
+        setUseHistory(true);
+      })
+      .finally(() => setLoading(false));
   }, [isAuthenticated]);
 
   const shown = useHistory ? history.slice(0, visible) : posts.slice(0, visible);
@@ -300,10 +304,14 @@ function BlogsSection() {
       .then((r) => (r.ok ? r.json() : []))
       .then((data: HistoryItem[]) => {
         const items = Array.from(new Map(data.filter((h) => h.type === "blog").map((h) => [h.itemId, h])).values());
-        if (items.length > 0) { setHistory(items); setUseHistory(true); setLoading(false); }
-        else loadGlobal();
+        setHistory(items);
+        setUseHistory(true);
       })
-      .catch(() => loadGlobal());
+      .catch(() => {
+        setHistory([]);
+        setUseHistory(true);
+      })
+      .finally(() => setLoading(false));
   }, [isAuthenticated]);
 
   const shown = useHistory ? history.slice(0, visible) : blogs.slice(0, visible);
@@ -413,10 +421,14 @@ function VideosSection() {
       .then((r) => (r.ok ? r.json() : []))
       .then((data: HistoryItem[]) => {
         const items = Array.from(new Map(data.filter((h) => h.type === "video").map((h) => [h.itemId, h])).values());
-        if (items.length > 0) { setHistory(items); setUseHistory(true); setLoading(false); }
-        else loadGlobal();
+        setHistory(items);
+        setUseHistory(true);
       })
-      .catch(() => loadGlobal());
+      .catch(() => {
+        setHistory([]);
+        setUseHistory(true);
+      })
+      .finally(() => setLoading(false));
   }, [isAuthenticated]);
 
   const shown = useHistory ? history.slice(0, visible) : videos.slice(0, visible);

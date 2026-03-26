@@ -16,6 +16,10 @@ class ActivityManager:
     def __init__(self):
         self.db = get_database()
 
+        # Keep personal history bounded to avoid unbounded user documents.
+        # Spec: 20-50. Using 50 for a bit more room.
+        self._max_recent_items = 50
+
     # ─── Trending ───────────────────────────────────────────────────────────
 
     async def get_trending(self, limit: int = 6) -> List[dict]:
@@ -110,39 +114,77 @@ class ActivityManager:
     # ─── Recently Viewed (per user) ─────────────────────────────────────────
 
     async def record_view(self, user_id: str, item_type: str, item_id: str, title: str) -> None:
-        """
-        Prepend an item to users.recently_viewed, keeping only the 20 most recent.
-        Deduplicates by itemId so re-visiting doesn't create duplicates.
-        """
-        entry = {
+        """Record a view into the current user's personal recent-history queues."""
+        viewed_at = datetime.utcnow().isoformat()
+
+        legacy_entry = {
             "type": item_type,
             "itemId": item_id,
             "title": title,
-            "viewedAt": datetime.utcnow().isoformat(),
+            "viewedAt": viewed_at,
+        }
+
+        per_type_field = {
+            "post": "recent_posts",
+            "blog": "recent_blogs",
+            "video": "recent_videos",
+        }.get(item_type)
+
+        per_type_entry = {
+            "itemId": item_id,
+            "title": title,
+            "viewedAt": viewed_at,
         }
         try:
-            # Remove any existing entry for this itemId first (dedup)
+            # Update per-type queue (preferred)
+            if per_type_field:
+                await self.db.users.update_one(
+                    {"_id": ObjectId(user_id)},
+                    {"$pull": {per_type_field: {"itemId": item_id}}},
+                )
+                await self.db.users.update_one(
+                    {"_id": ObjectId(user_id)},
+                    {"$push": {per_type_field: {"$each": [per_type_entry], "$position": 0, "$slice": self._max_recent_items}}},
+                )
+
+            # Also maintain legacy unified list for backwards compatibility
             await self.db.users.update_one(
                 {"_id": ObjectId(user_id)},
                 {"$pull": {"recently_viewed": {"itemId": item_id}}},
             )
-            # Prepend + slice to max 20
             await self.db.users.update_one(
                 {"_id": ObjectId(user_id)},
-                {"$push": {"recently_viewed": {"$each": [entry], "$position": 0, "$slice": 20}}},
+                {"$push": {"recently_viewed": {"$each": [legacy_entry], "$position": 0, "$slice": self._max_recent_items}}},
             )
         except Exception as e:
             print(f"activity.record_view error: {e}")
 
     async def get_recent_views(self, user_id: str) -> List[dict]:
-        """Return the user's recently_viewed array (already stored enriched)."""
+        """Return the user's recent views as a unified list.
+
+        Prefers the per-type queues (recent_posts/recent_blogs/recent_videos) and
+        falls back to the legacy recently_viewed if those aren't present.
+        """
         try:
             user = await self.db.users.find_one(
                 {"_id": ObjectId(user_id)},
-                {"recently_viewed": 1}
+                {"recent_posts": 1, "recent_blogs": 1, "recent_videos": 1, "recently_viewed": 1}
             )
             if not user:
                 return []
+
+            recent_posts = user.get("recent_posts") or []
+            recent_blogs = user.get("recent_blogs") or []
+            recent_videos = user.get("recent_videos") or []
+
+            if recent_posts or recent_blogs or recent_videos:
+                unified: List[dict] = []
+                unified.extend([{**e, "type": "post"} for e in recent_posts])
+                unified.extend([{**e, "type": "blog"} for e in recent_blogs])
+                unified.extend([{**e, "type": "video"} for e in recent_videos])
+                unified.sort(key=lambda x: x.get("viewedAt", ""), reverse=True)
+                return unified
+
             return user.get("recently_viewed") or []
         except Exception as e:
             print(f"activity.get_recent_views error: {e}")

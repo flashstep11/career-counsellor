@@ -47,17 +47,21 @@ class UserBase(BaseModel):
     expertId: Optional[str] = None
     isAdmin: bool = False
     wallet: int = 200  # Default wallet balance of 200 coins
-    following: list[str] = []
-    followers: list[str] = []
+    following: list[str] = Field(default_factory=list)
+    followers: list[str] = Field(default_factory=list)
     # Onboarding fields
     grade: Optional[Grade] = None
     preferred_stream: Optional[Stream] = None
     target_college: Optional[str] = None
-    interests: List[str] = []
+    interests: List[str] = Field(default_factory=list)
     career_goals: Optional[str] = None
     onboarding_completed: bool = False
-    recently_viewed: List[Dict[str, Any]] = []  # [{type, itemId, title, viewedAt}]
-    credentials: List[str] = []  # admin-assigned verification badges e.g. ["Verified", "Professor"]
+    recently_viewed: List[Dict[str, Any]] = Field(default_factory=list)  # [{type, itemId, title, viewedAt}]
+    # Dedicated per-type queues (personal history). Each entry: {itemId, title, viewedAt}
+    recent_posts: List[Dict[str, Any]] = Field(default_factory=list)
+    recent_blogs: List[Dict[str, Any]] = Field(default_factory=list)
+    recent_videos: List[Dict[str, Any]] = Field(default_factory=list)
+    credentials: List[str] = Field(default_factory=list)  # admin-assigned verification badges e.g. ["Verified", "Professor"]
     reputation: int = 0          # engagement score (incremented on post likes received)
 
 
